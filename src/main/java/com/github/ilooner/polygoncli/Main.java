@@ -1,4 +1,4 @@
-package com.github.ilooner.polygoncli.cmd;
+package com.github.ilooner.polygoncli;
 
 public class Main {
     public static void main(String[] args) {
