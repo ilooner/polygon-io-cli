@@ -1,6 +1,6 @@
 package com.github.ilooner.polygoncli.cmd;
 
-import com.github.ilooner.polygoncli.out.Outputter;
+import com.github.ilooner.polygoncli.output.Outputter;
 
 import java.util.List;
 

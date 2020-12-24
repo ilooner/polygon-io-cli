@@ -1,7 +1,7 @@
 package com.github.ilooner.polygoncli.cmd.stocks;
 
 import com.beust.jcommander.Parameter;
-import com.github.ilooner.polygoncli.out.Outputter;
+import com.github.ilooner.polygoncli.output.Outputter;
 
 import java.util.Date;
 

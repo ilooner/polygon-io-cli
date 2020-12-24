@@ -2,7 +2,7 @@ package com.github.ilooner.polygoncli;
 
 import com.beust.jcommander.JCommander;
 import com.github.ilooner.polygoncli.cmd.SourceCommand;
-import com.github.ilooner.polygoncli.cmd.out.OutputCommand;
+import com.github.ilooner.polygoncli.cmd.output.OutputCommand;
 import com.github.ilooner.polygoncli.cmd.stocks.StocksCommand;
 
 public class Main {
