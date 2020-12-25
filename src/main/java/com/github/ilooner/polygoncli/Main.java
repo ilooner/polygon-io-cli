@@ -1,17 +1,28 @@
 package com.github.ilooner.polygoncli;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.github.ilooner.polygoncli.cmd.SourceCommand;
 import com.github.ilooner.polygoncli.cmd.output.OutputCommand;
 import com.github.ilooner.polygoncli.cmd.stocks.StocksCommand;
+import lombok.ToString;
 
 public class Main {
     public static void main(String[] args) {
-        createCommander();
+        final JCommander commander = createCommander();
+        final Args rootArgs = ((Args) commander.getObjects().get(0));
+
+        commander.parse(args);
+
+        if (rootArgs.help) {
+            commander.usage();
+        } else {
+
+        }
     }
 
     public static JCommander createCommander() {
-        final JCommander root = new JCommander();
+        final JCommander root = new JCommander(new Args());
 
         for (SourceCommand sourceCommand: StocksCommand.SOURCE_COMMANDS) {
             final JCommander sourceCommander = addSourceCommand(root, sourceCommand);
@@ -42,5 +53,11 @@ public class Main {
 
         current.addCommand(sourceCommand.getName(), sourceCommand);
         return current.getCommands().get(sourceCommand.getName());
+    }
+
+    @ToString
+    public static class Args {
+        @Parameter(names = {"-h", "-help", "--help"}, description = "Get help.")
+        private boolean help;
     }
 }
