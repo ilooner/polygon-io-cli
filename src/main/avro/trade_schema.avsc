@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "Trade",
+  "namespace": "com.github.ilooner.polygoncli.client.model",
+  "fields" : [
+    {"name": "originalTradeID", "type": "long"},
+    {"name": "exchangeID", "type": "int"},
+    {"name": "price", "type": "double"},
+    {"name": "tradeID", "type": "string"},
+    {"name": "correctionIndicator", "type": "int"},
+    {"name": "reportingFacilityID", "type": "int"},
+    {"name": "timestampNano", "type": "long"},
+    {"name": "quoteTimestampNano", "type": "long"},
+    {"name": "reportTimestampNano", "type": "long"},
+    {"name": "sequenceNo", "type": "long"},
+    {"name": "conditions", "type": {"type": "array", "items": "int"}},
+    {"name": "size", "type": "long"},
+    {"name": "tape", "type": "int"}
+  ]
+}
