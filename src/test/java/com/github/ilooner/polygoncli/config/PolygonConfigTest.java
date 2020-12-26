@@ -2,6 +2,7 @@ package com.github.ilooner.polygoncli.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -30,5 +31,10 @@ public class PolygonConfigTest {
         final PolygonConfig actual = configLoader.load(file);
 
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDefaultConfig() throws IOException {
+        Assert.assertNotNull(new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG).getApiKey());
     }
 }
