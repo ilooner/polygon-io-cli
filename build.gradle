@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id "io.freefair.lombok" version "5.3.0"
+    id "com.commercehub.gradle.plugin.avro" version "0.22.0"
 }
 
 repositories {
@@ -38,3 +39,6 @@ task fatJar(type: Jar) {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+jar.dependsOn(fatJar)
+

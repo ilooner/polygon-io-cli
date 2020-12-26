@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AbstractOutputter implements Outputter {
+public abstract class AbstractOutputter<T> implements Outputter<T> {
     private final Duration shutdownDuration;
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();

@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "StockExchange",
+  "namespace": "com.github.ilooner.polygoncli.client.model",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "type", "type": "string"},
+    {"name": "market", "type": "string"},
+    {"name": "mic", "type": "string"},
+    {"name": "name", "type": "string"},
+    {"name": "tape", "type": "string"},
+    {"name": "code", "type": "string"}
+  ]
+}

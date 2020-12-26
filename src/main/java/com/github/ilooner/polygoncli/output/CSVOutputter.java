@@ -1,9 +1,26 @@
 package com.github.ilooner.polygoncli.output;
 
-import java.io.IOException;
+import org.apache.avro.generic.GenericRecord;
 
-public class CSVOutputter implements Outputter {
+import java.io.IOException;
+import java.time.Duration;
+
+public class CSVOutputter extends AbstractOutputter<GenericRecord> {
+    protected CSVOutputter(Duration shutdownDuration) {
+        super(shutdownDuration);
+    }
+
+    @Override
+    public void output(GenericRecord record) {
+
+    }
+
     @Override
     public void finish() throws IOException {
+    }
+
+    @Override
+    protected void onFinish() throws IOException {
+
     }
 }
