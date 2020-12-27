@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "Aggregate",
+  "namespace": "com.github.ilooner.polygoncli.client.model",
+  "fields" : [
+    {"name": "openPrice", "type": "double"},
+    {"name": "closePrice", "type": "double"},
+    {"name": "highestPrice", "type": "double"},
+    {"name": "lowestPrice", "type": "double"},
+    {"name": "average", "type": "double"},
+    {"name": "volume", "type": "long"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "numberOfItems", "type": "long"}
+  ]
+}
