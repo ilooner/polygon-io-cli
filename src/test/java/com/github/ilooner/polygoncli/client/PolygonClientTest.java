@@ -1,6 +1,7 @@
 package com.github.ilooner.polygoncli.client;
 
 import com.github.ilooner.polygoncli.config.ConfigLoader;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class PolygonClientTest {
@@ -9,6 +10,6 @@ public class PolygonClientTest {
         final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
         final var client = new PolygonClient(config);
 
-        System.out.println(client.getStockExchanges());
+        Assert.assertFalse(client.getStockExchanges().isEmpty());
     }
 }
