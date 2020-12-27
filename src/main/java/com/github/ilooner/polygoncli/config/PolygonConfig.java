@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class PolygonConfig {
     private String apiKey;
+    private boolean limited;
 
     public PolygonConfig() {
     }

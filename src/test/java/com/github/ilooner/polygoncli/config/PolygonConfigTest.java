@@ -22,7 +22,7 @@ public class PolygonConfigTest {
         file.toFile().deleteOnExit();
 
         final ObjectMapper om = new ObjectMapper();
-        final PolygonConfig expected = new PolygonConfig("blahblah");
+        final PolygonConfig expected = new PolygonConfig("blahblah", true);
         final byte[] bytes = om.writeValueAsBytes(expected);
 
         Files.write(file, bytes, StandardOpenOption.APPEND);
