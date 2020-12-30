@@ -3,6 +3,7 @@ package com.github.ilooner.polygoncli.client;
 import com.github.ilooner.polygoncli.client.model.Aggregate;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
 import com.github.ilooner.polygoncli.output.MemoryOutputter;
+import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 public class PolygonClientTest {
     @Test
@@ -25,32 +27,71 @@ public class PolygonClientTest {
     }
 
     @Test
-    public void getAggregatesTest() throws Exception {
+    public void singleQueryAggregatesTest() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-09-01");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-09-10");
+        final Set<LocalDate> expectedDates = createWeekdayDateSetInclusive(
+                startDate, endDate);
+
+        expectedDates.remove(PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-09-07"));
+
+        getAggregatesHelper("AAPL", startDate, endDate, expectedDates);
+    }
+
+    @Test
+    public void multiQueryAggregatesTest() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2019-01-10");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2019-09-10");
+        final Set<LocalDate> expectedDates = createWeekdayDateSetInclusive(
+                startDate, endDate);
+
+        final Set<LocalDate> holidays = Sets.newHashSet(
+                "2019-09-02",
+                "2019-04-19",
+                "2019-02-18",
+                "2019-01-21",
+                "2019-05-27",
+                "2019-07-04")
+                .stream()
+                .map(dateString -> PolygonClient.DATE_TIME_FORMATTER.parseLocalDate(dateString))
+                .collect(Collectors.toSet());
+
+        expectedDates.removeAll(holidays);
+
+        getAggregatesHelper("AAPL", startDate, endDate, expectedDates);
+    }
+
+    private Set<LocalDate> createWeekdayDateSetInclusive(final LocalDate startDate,
+                                                         final LocalDate endDate) {
+        final var dates = new HashSet<LocalDate>();
+
+        for (LocalDate current = startDate;
+             current.isBefore(endDate) || current.isEqual(endDate);
+             current = current.plusDays(1)) {
+
+            if (current.getDayOfWeek() == DateTimeConstants.SATURDAY ||
+                current.getDayOfWeek() == DateTimeConstants.SUNDAY) {
+                continue;
+            }
+
+            dates.add(current);
+        }
+
+        return dates;
+    }
+
+    private void getAggregatesHelper(final String ticker,
+                                     final LocalDate startDate,
+                                     final LocalDate endDate,
+                                     final Set<LocalDate> expectedDates) throws Exception {
         final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
         final var client = new PolygonClient(config);
         final var outputter = new MemoryOutputter<Aggregate>();
 
-        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-09-01");
-        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-09-10");
+        client.outputStockAggregates(ticker, startDate, endDate, outputter);
 
-        client.outputStockAggregates("AAPL", startDate, endDate, outputter);
-
-        final Set<LocalDate> expectedDates = new HashSet<>();
         final Set<LocalDate> actualDates = new HashSet<>();
         final Map<LocalDate, AtomicLong> counts = new HashMap<>();
-
-        for (int i = 1; i <= 10; i++) {
-            final var localDateString = String.format("2020-09-%02d", i);
-            final var localDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate(localDateString);
-
-            if (localDate.getDayOfWeek() == DateTimeConstants.SATURDAY ||
-                localDate.getDayOfWeek() == DateTimeConstants.SUNDAY ||
-                localDate.getDayOfMonth() == 7) {
-                continue;
-            }
-
-            expectedDates.add(PolygonClient.DATE_TIME_FORMATTER.parseLocalDate(localDateString));
-        }
 
         for (Aggregate aggregate: outputter.getOutputList()) {
             final var dateTime = new DateTime(aggregate.getTimestamp());
@@ -69,9 +110,16 @@ public class PolygonClientTest {
         }
 
         for (Map.Entry<LocalDate, AtomicLong> entry: counts.entrySet()) {
-            Assert.assertTrue(entry.getValue().get() > 720L);
+            final String msg = String.format("%d aggregates", entry.getValue().get());
+            Assert.assertTrue(msg, entry.getValue().get() > 300L);
         }
 
-        Assert.assertEquals(expectedDates, actualDates);
+        final var diff = new HashSet<>(expectedDates);
+        diff.removeAll(actualDates);
+
+        final String msg = String.format("expected size %d actual size %d, %s",
+                expectedDates.size(), actualDates.size(), diff.toString());
+
+        Assert.assertEquals(msg, expectedDates, actualDates);
     }
 }

@@ -15,6 +15,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import retrofit2.HttpException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -48,9 +49,9 @@ public class PolygonClient {
 
         final var retryConfig = RetryConfig.custom()
                 .maxAttempts(3)
-                .waitDuration(Duration.ofSeconds(5L))
+                .waitDuration(Duration.ofSeconds(30L))
                 .retryOnResult(result -> result == null)
-                .retryExceptions(IOException.class, TimeoutException.class, ExecutionException.class)
+                .retryExceptions(IOException.class, TimeoutException.class, ExecutionException.class, HttpException.class)
                 .ignoreExceptions(InterruptedException.class, CancellationException.class)
                 .build();
         final var retryRegistry = RetryRegistry.custom().build();
