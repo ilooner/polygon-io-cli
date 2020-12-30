@@ -1,26 +1,70 @@
 package com.github.ilooner.polygoncli.output;
 
+import com.google.common.base.Charsets;
+import lombok.Setter;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.*;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CSVOutputter extends AbstractOutputter<GenericRecord> {
-    protected CSVOutputter(Duration shutdownDuration) {
+    private final OutputStream outputStream;
+    private final Schema schema;
+    private final List<String> tmpList = new ArrayList<>();
+
+    protected CSVOutputter(final Duration shutdownDuration,
+                           final Schema schema,
+                           final Path path) throws IOException {
         super(shutdownDuration);
+
+        this.outputStream = new BufferedOutputStream(Files.newOutputStream(path,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE));
+        this.schema = schema;
+
+        final var headers = schema.getFields()
+                .stream()
+                .map(field -> field.name())
+                .collect(Collectors.toList());
+
+        if (headers != null) {
+            writeRow(headers);
+        }
     }
 
     @Override
-    public void output(GenericRecord record) {
+    public void output(GenericRecord record) throws IOException {
+        for (int i = 0; i < schema.getFields().size(); i++) {
+            tmpList.add(record.get(i).toString());
+        }
 
+        writeRow(tmpList);
+        tmpList.clear();
     }
 
-    @Override
-    public void finish() throws IOException {
+    private void writeRow(List<String> row) throws IOException {
+        final byte[] bytes = String.join(",", row).getBytes(Charsets.UTF_8);
+        outputStream.write(bytes);
     }
 
     @Override
     protected void onFinish() throws IOException {
+        outputStream.flush();
+        outputStream.close();
+    }
 
+    @Setter
+    public static class Builder {
+        public CSVOutputter build(final Schema schema,
+                                  final Path path) throws IOException {
+            return new CSVOutputter(Duration.ofSeconds(30L), schema, path);
+        }
     }
 }
