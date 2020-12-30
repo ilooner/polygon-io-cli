@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class PolygonClient {
     public static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(15L);
@@ -79,16 +80,16 @@ public class PolygonClient {
                 computedStartDate = new LocalDate(lastTimestamp);
             }
 
+            final var tmpLastTimestamp = lastTimestamp;
             final var aggregatesList = getStockAggregates(ticker, computedStartDate, endDate);
+            final var convertedAggregatesList = aggregatesList
+                    .getResults()
+                    .stream()
+                    .filter(aggregate -> tmpLastTimestamp == null || (aggregate.getT() > tmpLastTimestamp))
+                    .map(aggregate -> aggregate.convert())
+                    .collect(Collectors.toList());
 
-            for (StockAggregateJSON aggregate: aggregatesList.getResults()) {
-                if (lastTimestamp != null && aggregate.getT() <= lastTimestamp) {
-                    // Skip aggregates we've already received.
-                    continue;
-                }
-
-                outputter.output(aggregate.convert());
-            }
+            outputter.output(convertedAggregatesList);
 
             final var size = aggregatesList.getResults().size();
             final boolean done = size < AGGREGATES_LIMIT;

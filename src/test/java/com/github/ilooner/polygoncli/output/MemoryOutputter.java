@@ -8,8 +8,8 @@ public class MemoryOutputter<T> implements Outputter<T> {
     private List<T> outputList = new ArrayList<>();
 
     @Override
-    public void output(T record) {
-        outputList.add(record);
+    public void output(List<T> record) throws Exception {
+        outputList.addAll(record);
     }
 
     @Override

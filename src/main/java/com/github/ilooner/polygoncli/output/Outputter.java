@@ -1,8 +1,8 @@
 package com.github.ilooner.polygoncli.output;
 
-import java.io.IOException;
+import java.util.List;
 
 public interface Outputter<T> {
-    void output(T record) throws IOException;
-    void finish() throws IOException, InterruptedException;
+    void output(List<T> record) throws Exception;
+    void finish() throws Exception;
 }
