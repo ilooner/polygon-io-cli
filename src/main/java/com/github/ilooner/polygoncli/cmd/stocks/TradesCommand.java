@@ -3,6 +3,8 @@ package com.github.ilooner.polygoncli.cmd.stocks;
 import com.beust.jcommander.Parameter;
 import com.github.ilooner.polygoncli.cmd.SourceCommand;
 import com.github.ilooner.polygoncli.output.Outputter;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
 
 import java.util.Date;
 
@@ -26,7 +28,12 @@ public class TradesCommand extends StocksCommand implements SourceCommand {
     }
 
     @Override
-    public void run(Outputter outputter) {
+    public Schema getSchema() {
+        return null;
+    }
+
+    @Override
+    public void run(Outputter<GenericRecord> outputter) {
 
     }
 }

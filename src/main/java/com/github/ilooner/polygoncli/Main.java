@@ -5,7 +5,11 @@ import com.beust.jcommander.Parameter;
 import com.github.ilooner.polygoncli.cmd.SourceCommand;
 import com.github.ilooner.polygoncli.cmd.output.OutputCommand;
 import com.github.ilooner.polygoncli.cmd.stocks.StocksCommand;
+import com.github.ilooner.polygoncli.output.Outputter;
 import lombok.ToString;
+import org.apache.avro.generic.GenericRecord;
+
+import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,9 +20,28 @@ public class Main {
 
         if (rootArgs.help) {
             commander.usage();
-        } else {
-
+            return;
         }
+
+        final var sourceName = commander.getParsedAlias();
+        final var sourceCommander = commander.getCommands().get(sourceName);
+        final var sourceCommand = (SourceCommand) sourceCommander.getObjects().get(0);
+        final var outputName = sourceCommander.getParsedAlias();
+        final var outputCommander = sourceCommander.getCommands().get(outputName);
+        final var outputCommand = (OutputCommand) outputCommander.getObjects().get(0);
+
+        final var schema = sourceCommand.getSchema();
+        final Outputter<GenericRecord> outputter;
+
+        try {
+            outputter = outputCommand.getOutputter(schema);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return; // Make compiler happy
+        }
+
+        sourceCommand.run(outputter);
     }
 
     public static JCommander createCommander() {

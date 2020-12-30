@@ -1,7 +1,6 @@
 package com.github.ilooner.polygoncli.output;
 
 import com.google.common.base.Charsets;
-import lombok.Setter;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 
@@ -64,9 +63,13 @@ public class CSVOutputter extends AbstractOutputter<GenericRecord> {
         outputStream.close();
     }
 
-    @Setter
     public static class Builder {
         private boolean header;
+
+        public Builder setHeader(final boolean header) {
+            this.header = header;
+            return this;
+        }
 
         public CSVOutputter build(final Schema schema,
                                   final Path path) throws IOException {
