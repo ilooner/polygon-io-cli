@@ -2,9 +2,12 @@ package com.github.ilooner.polygoncli;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.github.ilooner.polygoncli.client.PolygonClient;
 import com.github.ilooner.polygoncli.cmd.SourceCommand;
 import com.github.ilooner.polygoncli.cmd.output.OutputCommand;
 import com.github.ilooner.polygoncli.cmd.stocks.StocksCommand;
+import com.github.ilooner.polygoncli.config.ConfigLoader;
+import com.github.ilooner.polygoncli.config.PolygonConfig;
 import com.github.ilooner.polygoncli.output.Outputter;
 import lombok.ToString;
 import org.apache.avro.generic.GenericRecord;
@@ -12,7 +15,11 @@ import org.apache.avro.generic.GenericRecord;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        final ConfigLoader configLoader = new ConfigLoader();
+        final PolygonConfig polygonConfig = configLoader.load(ConfigLoader.DEFAULT_CONFIG);
+        final PolygonClient polygonClient = new PolygonClient(polygonConfig);
+
         final JCommander commander = createCommander();
         final Args rootArgs = ((Args) commander.getObjects().get(0));
 
@@ -23,10 +30,30 @@ public class Main {
             return;
         }
 
-        final var sourceName = commander.getParsedAlias();
-        final var sourceCommander = commander.getCommands().get(sourceName);
+        final var entityName = commander.getParsedAlias();
+
+        if (entityName == null) {
+            commander.usage();
+            return;
+        }
+
+        final var entityCommander = commander.getCommands().get(entityName);
+        final var sourceName = entityCommander.getParsedAlias();
+
+        if (sourceName == null) {
+            commander.usage();
+            return;
+        }
+
+        final var sourceCommander = entityCommander.getCommands().get(sourceName);
         final var sourceCommand = (SourceCommand) sourceCommander.getObjects().get(0);
         final var outputName = sourceCommander.getParsedAlias();
+
+        if (outputName == null) {
+            commander.usage();
+            return;
+        }
+
         final var outputCommander = sourceCommander.getCommands().get(outputName);
         final var outputCommand = (OutputCommand) outputCommander.getObjects().get(0);
 
@@ -41,7 +68,7 @@ public class Main {
             return; // Make compiler happy
         }
 
-        sourceCommand.run(outputter);
+        sourceCommand.run(polygonClient, outputter);
     }
 
     public static JCommander createCommander() {

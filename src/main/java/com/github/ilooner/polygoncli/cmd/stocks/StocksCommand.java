@@ -9,7 +9,7 @@ import java.util.List;
 public abstract class StocksCommand implements SourceCommand {
     public static final String PATH = "stocks";
     public static final List<SourceCommand> SOURCE_COMMANDS = Collections.unmodifiableList(
-            Lists.newArrayList(new TradesCommand())
+            Lists.newArrayList(new TradesCommand(), new AggregatesCommand())
     );
 
     @Override
