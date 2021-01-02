@@ -151,16 +151,6 @@ public class PolygonClient {
         }
     }
 
-    private <T> T execute(final SupplierWithException<T> request, CompletableFuture<T> first) throws Exception {
-        try {
-            return first.get(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (CancellationException | ExecutionException | TimeoutException | InterruptedException e) {
-            // Swallow for retry
-        }
-
-        return execute(request);
-    }
-
     @FunctionalInterface
     public interface SupplierWithException<T> {
         T get() throws Exception;
