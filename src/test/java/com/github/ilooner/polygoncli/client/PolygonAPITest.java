@@ -1,6 +1,6 @@
 package com.github.ilooner.polygoncli.client;
 
-import com.github.ilooner.polygoncli.client.model.StockAggregateListJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
 import org.junit.Assert;
 import org.junit.Test;

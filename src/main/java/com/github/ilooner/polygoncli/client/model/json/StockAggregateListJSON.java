@@ -1,4 +1,4 @@
-package com.github.ilooner.polygoncli.client.model;
+package com.github.ilooner.polygoncli.client.model.json;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

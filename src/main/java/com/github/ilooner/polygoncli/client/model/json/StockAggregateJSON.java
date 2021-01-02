@@ -1,5 +1,6 @@
-package com.github.ilooner.polygoncli.client.model;
+package com.github.ilooner.polygoncli.client.model.json;
 
+import com.github.ilooner.polygoncli.client.model.Aggregate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
-public class StockAggregateJSON {
+public class StockAggregateJSON implements JSONData<Aggregate> {
     private double o;
     private double h;
     private double l;
@@ -18,6 +19,11 @@ public class StockAggregateJSON {
     private double vw;
     private long t;
     private long n;
+
+    @Override
+    public long getTimestampMillis() {
+        return t;
+    }
 
     public Aggregate convert() {
         final Aggregate aggregate = new Aggregate();

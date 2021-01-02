@@ -1,9 +1,10 @@
 package com.github.ilooner.polygoncli.client;
 
 import com.github.ilooner.polygoncli.client.model.Aggregate;
-import com.github.ilooner.polygoncli.client.model.StockAggregateJSON;
-import com.github.ilooner.polygoncli.client.model.StockAggregateListJSON;
-import com.github.ilooner.polygoncli.client.model.StockExchangeJSON;
+import com.github.ilooner.polygoncli.client.model.json.JSONData;
+import com.github.ilooner.polygoncli.client.model.json.StockAggregateJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockExchangeJSON;
 import com.github.ilooner.polygoncli.config.PolygonConfig;
 import com.github.ilooner.polygoncli.output.Outputter;
 import io.github.resilience4j.ratelimiter.RateLimiter;
@@ -12,6 +13,8 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
+import org.apache.avro.specific.SpecificRecord;
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -69,45 +72,56 @@ public class PolygonClient {
                                       final LocalDate startDate,
                                       final LocalDate endDate,
                                       final Outputter<Aggregate> outputter) throws Exception {
+        outputDataPoints(ticker,
+                startDate.toDateTimeAtStartOfDay(),
+                endDate.toDateTimeAtStartOfDay(),
+                outputter,
+                (ticker1, startDate1, endDate1) -> getStockAggregates(ticker1, startDate1, endDate1));
+    }
+
+    protected <A extends SpecificRecord, T extends JSONData<A>> void outputDataPoints(
+                                    final String ticker,
+                                    final DateTime startDate,
+                                    final DateTime endDate,
+                                    final Outputter<A> outputter,
+                                    final DataSupplier<A, T> supplier) throws Exception {
         Long lastTimestamp = null;
 
         while (true) {
-            final LocalDate computedStartDate;
+            final DateTime computedStartDate;
 
             if (lastTimestamp == null) {
                 computedStartDate = startDate;
             } else {
-                computedStartDate = new LocalDate(lastTimestamp);
+                computedStartDate = new DateTime(lastTimestamp);
             }
 
             final var tmpLastTimestamp = lastTimestamp;
-            final var aggregatesList = getStockAggregates(ticker, computedStartDate, endDate);
-            final var convertedAggregatesList = aggregatesList
-                    .getResults()
+            final var jsonDataList = supplier.get(ticker, computedStartDate, endDate);
+            final var convertedList = jsonDataList
                     .stream()
-                    .filter(aggregate -> tmpLastTimestamp == null || (aggregate.getT() > tmpLastTimestamp))
-                    .map(aggregate -> aggregate.convert())
+                    .filter(data -> tmpLastTimestamp == null || (data.getTimestampMillis() > tmpLastTimestamp))
+                    .map(data -> data.convert())
                     .collect(Collectors.toList());
 
-            outputter.output(convertedAggregatesList);
+            outputter.output(convertedList);
 
-            final var size = aggregatesList.getResults().size();
+            final var size = jsonDataList.size();
             final boolean done = size < AGGREGATES_LIMIT;
 
             if (done) {
                 break;
             } else {
-                final var aggregate = aggregatesList.getResults().get(size - 1);
-                lastTimestamp = aggregate.getT();
+                lastTimestamp = jsonDataList.get(size - 1).getTimestampMillis();
             }
         }
 
         outputter.finish();
     }
 
-    private StockAggregateListJSON getStockAggregates(final String ticker,
-                                                      final LocalDate startDate,
-                                                      final LocalDate endDate) throws Exception {
+    private List<StockAggregateJSON> getStockAggregates(final String ticker,
+                                                  final DateTime startDate,
+                                                  final DateTime endDate) throws Exception {
 
         return execute(() -> polygonAPI.getStockAggregates(
                 ticker,
@@ -117,7 +131,8 @@ public class PolygonClient {
                 endDate.toString(DATE_TIME_FORMATTER),
                 false,
                 AGGREGATES_SORT_ASC,
-                AGGREGATES_LIMIT).get(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS));
+                AGGREGATES_LIMIT).get(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS))
+                .getResults();
     }
 
     private <T> T execute(final SupplierWithException<T> request) throws Exception {
@@ -149,5 +164,10 @@ public class PolygonClient {
     @FunctionalInterface
     public interface SupplierWithException<T> {
         T get() throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface DataSupplier<A extends SpecificRecord, T extends JSONData<A>> {
+        List<T> get(final String ticker, final DateTime startDate, final DateTime endDate) throws Exception;
     }
 }

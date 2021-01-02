@@ -1,7 +1,7 @@
 package com.github.ilooner.polygoncli.client;
 
-import com.github.ilooner.polygoncli.client.model.StockAggregateListJSON;
-import com.github.ilooner.polygoncli.client.model.StockExchangeJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockExchangeJSON;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;

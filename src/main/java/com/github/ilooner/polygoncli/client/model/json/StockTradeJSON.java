@@ -1,4 +1,4 @@
-package com.github.ilooner.polygoncli.client.model;
+package com.github.ilooner.polygoncli.client.model.json;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,4 +19,6 @@ public class StockTradeJSON {
     private int[] c = new int[0];
     private double p;
     private int z;
+
+
 }
