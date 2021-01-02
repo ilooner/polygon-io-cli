@@ -2,6 +2,7 @@ package com.github.ilooner.polygoncli.client;
 
 import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
 import com.github.ilooner.polygoncli.client.model.json.StockExchangeJSON;
+import com.github.ilooner.polygoncli.client.model.json.StockTradesListJSON;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -19,7 +20,15 @@ public interface PolygonAPI {
                                                                  @Path("timespan") String timespan,
                                                                  @Path("from") String from,
                                                                  @Path("to") String to,
-                                                                 @Query("unadjusted") boolean unadjusted,
+                                                                 @Query("unadjusted") Boolean unadjusted,
                                                                  @Query("sort") String sort,
-                                                                 @Query("limit") int limit);
+                                                                 @Query("limit") Integer limit);
+
+    @GET("/v2/ticks/stocks/trades/{ticker}/{date}")
+    CompletableFuture<StockTradesListJSON> getStockTrades(@Path("ticker") String ticker,
+                                                          @Path("date") String date,
+                                                          @Query("timestamp") Long timestamp,
+                                                          @Query("timestampLimit") Long timestampLimit,
+                                                          @Query("reverse") Boolean reverse,
+                                                          @Query("limit") Integer limit);
 }

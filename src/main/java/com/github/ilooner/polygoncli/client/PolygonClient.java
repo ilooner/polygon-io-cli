@@ -1,10 +1,7 @@
 package com.github.ilooner.polygoncli.client;
 
 import com.github.ilooner.polygoncli.client.model.Aggregate;
-import com.github.ilooner.polygoncli.client.model.json.JSONData;
-import com.github.ilooner.polygoncli.client.model.json.StockAggregateJSON;
-import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
-import com.github.ilooner.polygoncli.client.model.json.StockExchangeJSON;
+import com.github.ilooner.polygoncli.client.model.json.*;
 import com.github.ilooner.polygoncli.config.PolygonConfig;
 import com.github.ilooner.polygoncli.output.Outputter;
 import io.github.resilience4j.ratelimiter.RateLimiter;
@@ -119,9 +116,15 @@ public class PolygonClient {
         outputter.finish();
     }
 
+    private List<StockTradeJSON> getStockTrades(final String ticker,
+                                                final DateTime startDate,
+                                                final DateTime endDate) throws Exception {
+        return null;
+    }
+
     private List<StockAggregateJSON> getStockAggregates(final String ticker,
-                                                  final DateTime startDate,
-                                                  final DateTime endDate) throws Exception {
+                                                        final DateTime startDate,
+                                                        final DateTime endDate) throws Exception {
 
         return execute(() -> polygonAPI.getStockAggregates(
                 ticker,
