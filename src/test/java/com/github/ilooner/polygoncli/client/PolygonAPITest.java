@@ -4,7 +4,6 @@ import com.github.ilooner.polygoncli.client.model.json.StockAggregateListJSON;
 import com.github.ilooner.polygoncli.client.model.json.StockTradesListJSON;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,7 +36,6 @@ public class PolygonAPITest {
         Assert.assertFalse(aggregateListJSON.getResults().isEmpty());
     }
 
-    @Ignore
     @Test
     public void getStockTradesTest() throws IOException, ExecutionException, InterruptedException {
         final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);

@@ -1,5 +1,6 @@
 package com.github.ilooner.polygoncli.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 @Getter
@@ -7,6 +8,7 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PolygonConfig {
     private String apiKey;
     private boolean limited;

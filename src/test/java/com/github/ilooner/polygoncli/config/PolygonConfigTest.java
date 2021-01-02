@@ -2,7 +2,6 @@ package com.github.ilooner.polygoncli.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
