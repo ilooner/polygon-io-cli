@@ -8,7 +8,7 @@ public class MemoryOutputter<T> implements Outputter<T> {
     private List<T> outputList = new ArrayList<>();
 
     @Override
-    public void output(List<T> record) throws Exception {
+    public synchronized void output(List<T> record) throws Exception {
         outputList.addAll(record);
     }
 
@@ -17,7 +17,7 @@ public class MemoryOutputter<T> implements Outputter<T> {
 
     }
 
-    public List<T> getOutputList() {
+    public synchronized List<T> getOutputList() {
         return outputList;
     }
 

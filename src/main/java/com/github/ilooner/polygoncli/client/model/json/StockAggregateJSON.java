@@ -21,6 +21,11 @@ public class StockAggregateJSON implements JSONData<Aggregate> {
     private long n;
 
     @Override
+    public long getSeqNo() {
+        return t;
+    }
+
+    @Override
     public long getTimestampMillis() {
         return t;
     }

@@ -1,6 +1,7 @@
 package com.github.ilooner.polygoncli.client;
 
 import com.github.ilooner.polygoncli.client.model.Aggregate;
+import com.github.ilooner.polygoncli.client.model.Trade;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
 import com.github.ilooner.polygoncli.output.MemoryOutputter;
 import com.google.common.collect.Sets;
@@ -59,6 +60,28 @@ public class PolygonClientTest {
         expectedDates.removeAll(holidays);
 
         getAggregatesHelper("AAPL", startDate, endDate, expectedDates);
+    }
+
+    @Test
+    public void queryStockTrades() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-06");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-07");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Trade>();
+
+        final var expectedDates = Sets.newHashSet(startDate, endDate);
+        final var actualDates = new HashSet<>();
+
+        client.outputStockTrades("KO", startDate, endDate, outputter);
+
+        for (Trade trade: outputter.getOutputList()) {
+            final var millis = trade.getTimestampNano() / 1_000_000L;
+            actualDates.add(new DateTime(millis).toLocalDate());
+        }
+
+        Assert.assertEquals(expectedDates, actualDates);
     }
 
     private Set<LocalDate> createWeekdayDateSetInclusive(final LocalDate startDate,

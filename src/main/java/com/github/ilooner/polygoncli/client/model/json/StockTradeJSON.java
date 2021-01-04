@@ -29,9 +29,14 @@ public class StockTradeJSON implements JSONData<Trade> {
     private int r;
 
     @Override
+    public long getSeqNo() {
+        return q;
+    }
+
+    @Override
     public long getTimestampMillis() {
         // Convert to millis
-        return t / 1000L;
+        return t / 1_000_000L;
     }
 
     @Override
