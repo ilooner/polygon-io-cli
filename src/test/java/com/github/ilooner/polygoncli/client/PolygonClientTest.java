@@ -4,6 +4,7 @@ import com.github.ilooner.polygoncli.client.model.Aggregate;
 import com.github.ilooner.polygoncli.client.model.Trade;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
 import com.github.ilooner.polygoncli.output.MemoryOutputter;
+import com.github.ilooner.polygoncli.utils.DateUtils;
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -11,6 +12,7 @@ import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -63,7 +65,7 @@ public class PolygonClientTest {
     }
 
     @Test
-    public void queryStockTrades() throws Exception {
+    public void queryStockTradesWeekdaysOnly() throws Exception {
         final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-06");
         final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-07");
 
@@ -81,6 +83,45 @@ public class PolygonClientTest {
             actualDates.add(new DateTime(millis).toLocalDate());
         }
 
+        Assert.assertTrue(outputter.getOutputList().size() > 100_000);
+        Assert.assertEquals(expectedDates, actualDates);
+    }
+
+    @Test
+    public void queryStockTradesWeekendOnly() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-11");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-12");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Trade>();
+
+        client.outputStockTrades("KO", startDate, endDate, outputter);
+
+        Assert.assertTrue(outputter.getOutputList().isEmpty());
+    }
+
+    @Test
+    public void queryStockTradesStartWeekend() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-12");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-13");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Trade>();
+
+        client.outputStockTrades("KO", startDate, endDate, outputter);
+
+        final var expectedDates = Sets.newHashSet(endDate);
+        final var actualDates = new HashSet<>();
+
+        for (Trade trade: outputter.getOutputList()) {
+            final var millis = trade.getTimestampNano() / 1_000_000L;
+            final var localDates = new DateTime(millis).toLocalDate();
+            actualDates.add(localDates);
+        }
+
+        Assert.assertTrue(outputter.getOutputList().size() > 50_000);
         Assert.assertEquals(expectedDates, actualDates);
     }
 
@@ -92,8 +133,7 @@ public class PolygonClientTest {
              current.isBefore(endDate) || current.isEqual(endDate);
              current = current.plusDays(1)) {
 
-            if (current.getDayOfWeek() == DateTimeConstants.SATURDAY ||
-                current.getDayOfWeek() == DateTimeConstants.SUNDAY) {
+            if (DateUtils.isWeekend(current.toDateTimeAtCurrentTime())) {
                 continue;
             }
 

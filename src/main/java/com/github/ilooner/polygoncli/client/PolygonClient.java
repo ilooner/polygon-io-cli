@@ -5,6 +5,7 @@ import com.github.ilooner.polygoncli.client.model.Trade;
 import com.github.ilooner.polygoncli.client.model.json.*;
 import com.github.ilooner.polygoncli.config.PolygonConfig;
 import com.github.ilooner.polygoncli.output.Outputter;
+import com.github.ilooner.polygoncli.utils.DateUtils;
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class PolygonClient {
@@ -53,7 +55,8 @@ public class PolygonClient {
                 .maxAttempts(3)
                 .waitDuration(Duration.ofSeconds(30L))
                 .retryOnResult(result -> result == null)
-                .retryExceptions(IOException.class, TimeoutException.class, ExecutionException.class, HttpException.class)
+                .retryExceptions(IOException.class, TimeoutException.class)
+                .retryOnException(new RetryPredicate())
                 .ignoreExceptions(InterruptedException.class, CancellationException.class)
                 .build();
         final var retryRegistry = RetryRegistry.custom().build();
@@ -101,7 +104,29 @@ public class PolygonClient {
         while (true) {
             final var tmpLT = lastTimestamp;
             final var tmpSN = lastSeqNo;
-            final var jsonDataList = supplier.get(ticker, computedStartDate, endDate);
+            final List<T> jsonDataList;
+
+            try {
+                jsonDataList = supplier.get(ticker, computedStartDate, endDate);
+            } catch (Exception ex) {
+                if (RetryPredicate.noDataExists(ex)) {
+                    // No date exists for this date, so we need to proceed to next date
+                    computedStartDate = DateUtils.nextWeekDay(startDate);
+                    lastTimestamp = computedStartDate.getMillis();
+                    lastSeqNo = null;
+
+                    if (computedStartDate.toLocalDate().isAfter(endDate.toLocalDate())) {
+                        // We are done, there is no more data for us to get
+                        break;
+                    } else {
+                        // We are not done yet. We need to try another data fetch.
+                        continue;
+                    }
+                } else {
+                    throw ex;
+                }
+            }
+
             final var convertedList = jsonDataList
                     .stream()
                     .filter(data -> tmpLT == null || data.getTimestampMillis() >= tmpLT)
@@ -123,7 +148,7 @@ public class PolygonClient {
                 if (nextStartDate.toLocalDate().equals(endDate.toLocalDate())) {
                     break;
                 } else {
-                    nextStartDate = nextStartDate.toLocalDate().plusDays(1).toDateTimeAtStartOfDay();
+                    nextStartDate = DateUtils.nextWeekDay(nextStartDate);
                 }
             }
 
@@ -190,5 +215,32 @@ public class PolygonClient {
     @FunctionalInterface
     public interface DataSupplier<A extends SpecificRecord, T extends JSONData<A>> {
         List<T> get(final String ticker, final DateTime startDate, final DateTime endDate) throws Exception;
+    }
+
+    public static class RetryPredicate implements Predicate<Throwable> {
+        @Override
+        public boolean test(Throwable throwable) {
+            return !noDataExists(throwable);
+        }
+
+        public static boolean noDataExists(Throwable throwable) {
+            if (throwable instanceof ExecutionException) {
+                final var cause = throwable.getCause();
+
+                if (cause instanceof HttpException) {
+                    return noDataExists((HttpException) cause);
+                } else {
+                    return false;
+                }
+            } else if (throwable instanceof HttpException) {
+                return noDataExists((HttpException) throwable);
+            } else {
+                return false;
+            }
+        }
+
+        public static boolean noDataExists(HttpException ex) {
+            return ex.code() == 404;
+        }
     }
 }
