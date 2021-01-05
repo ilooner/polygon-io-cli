@@ -157,6 +157,11 @@ public class PolygonClient {
                 lastSeqNo = null;
             }
 
+            if (nextStartDate.toLocalDate().isAfter(endDate.toLocalDate())) {
+                // We are done, there is no more data for us to get
+                break;
+            }
+
             computedStartDate = nextStartDate;
         }
 

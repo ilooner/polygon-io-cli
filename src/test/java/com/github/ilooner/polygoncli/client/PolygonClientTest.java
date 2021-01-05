@@ -125,6 +125,30 @@ public class PolygonClientTest {
         Assert.assertEquals(expectedDates, actualDates);
     }
 
+    @Test
+    public void queryStockTradesEndWeekend() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-10");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-01-11");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Trade>();
+
+        client.outputStockTrades("KO", startDate, endDate, outputter);
+
+        final var expectedDates = Sets.newHashSet(startDate);
+        final var actualDates = new HashSet<>();
+
+        for (Trade trade: outputter.getOutputList()) {
+            final var millis = trade.getTimestampNano() / 1_000_000L;
+            final var localDates = new DateTime(millis).toLocalDate();
+            actualDates.add(localDates);
+        }
+
+        Assert.assertTrue(outputter.getOutputList().size() > 50_000);
+        Assert.assertEquals(expectedDates, actualDates);
+    }
+
     private Set<LocalDate> createWeekdayDateSetInclusive(final LocalDate startDate,
                                                          final LocalDate endDate) {
         final var dates = new HashSet<LocalDate>();
