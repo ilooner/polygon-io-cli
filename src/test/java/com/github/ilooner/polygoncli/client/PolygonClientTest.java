@@ -1,5 +1,6 @@
 package com.github.ilooner.polygoncli.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.ilooner.polygoncli.client.model.Aggregate;
 import com.github.ilooner.polygoncli.client.model.Trade;
 import com.github.ilooner.polygoncli.config.ConfigLoader;
@@ -146,6 +147,37 @@ public class PolygonClientTest {
         }
 
         Assert.assertTrue(outputter.getOutputList().size() > 50_000);
+        Assert.assertEquals(expectedDates, actualDates);
+    }
+
+    @JsonIgnore
+    @Test
+    public void realWorldStockTradesQuery() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-12-20");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-12-25");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Trade>();
+
+        final var expectedDates = Sets.newHashSet(
+                "2020-12-21",
+                "2020-12-22",
+                "2020-12-23",
+                "2020-12-24")
+                .stream()
+                .map(dateString -> PolygonClient.DATE_TIME_FORMATTER.parseLocalDate(dateString))
+                .collect(Collectors.toSet());
+        final var actualDates = new HashSet<>();
+
+        client.outputStockTrades("KO", startDate, endDate, outputter);
+
+        for (Trade trade: outputter.getOutputList()) {
+            final var millis = trade.getTimestampNano() / 1_000_000L;
+            final var localDates = new DateTime(millis).toLocalDate();
+            actualDates.add(localDates);
+        }
+
         Assert.assertEquals(expectedDates, actualDates);
     }
 

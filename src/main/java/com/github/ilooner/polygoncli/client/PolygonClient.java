@@ -111,7 +111,7 @@ public class PolygonClient {
             } catch (Exception ex) {
                 if (RetryPredicate.noDataExists(ex)) {
                     // No date exists for this date, so we need to proceed to next date
-                    computedStartDate = DateUtils.nextWeekDay(startDate);
+                    computedStartDate = DateUtils.nextWeekDay(computedStartDate);
                     lastTimestamp = computedStartDate.getMillis();
                     lastSeqNo = null;
 
@@ -163,6 +163,7 @@ public class PolygonClient {
             }
 
             computedStartDate = nextStartDate;
+            lastTimestamp = computedStartDate.getMillis();
         }
 
         outputter.finish();
