@@ -28,7 +28,8 @@ public class CSVOutputter extends AbstractOutputter<GenericRecord> {
 
         this.outputStream = new BufferedOutputStream(Files.newOutputStream(path,
                 StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE));
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING));
         this.schema = schema;
 
         final var headers = schema.getFields()
