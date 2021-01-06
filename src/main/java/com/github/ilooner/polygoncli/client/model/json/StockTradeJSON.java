@@ -52,7 +52,6 @@ public class StockTradeJSON implements JSONData<Trade> {
         trade.setTimestampNano(t);
         trade.setQuoteTimestampNano(y);
         trade.setSequenceNo(q);
-        trade.setConditions(c);
         trade.setSize(s);
         trade.setTape(z);
 

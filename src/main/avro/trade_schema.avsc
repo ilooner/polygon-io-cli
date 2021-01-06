@@ -12,7 +12,6 @@
     {"name": "timestampNano", "type": "long"},
     {"name": "quoteTimestampNano", "type": "long"},
     {"name": "sequenceNo", "type": "long"},
-    {"name": "conditions", "type": {"type": "array", "items": "int"}},
     {"name": "size", "type": "long"},
     {"name": "tape", "type": "int"}
   ]
