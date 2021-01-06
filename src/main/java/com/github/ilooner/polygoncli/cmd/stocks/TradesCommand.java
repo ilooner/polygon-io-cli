@@ -8,8 +8,7 @@ import com.github.ilooner.polygoncli.cmd.utils.LocalDateConverter;
 import com.github.ilooner.polygoncli.output.Outputter;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-
-import java.time.LocalDate;
+import org.joda.time.LocalDate;
 
 public class TradesCommand extends StocksCommand implements SourceCommand {
     public static final String NAME = "trades";
@@ -19,11 +18,11 @@ public class TradesCommand extends StocksCommand implements SourceCommand {
             description = "The ticker symbol we want trades for.")
     private String ticker;
 
-    @Parameter(names = "-st", description = "The start time.", converter = LocalDateConverter.class)
-    private LocalDate startTime;
+    @Parameter(names = "-s", description = "The start date.", converter = LocalDateConverter.class)
+    private org.joda.time.LocalDate startDate;
 
-    @Parameter(names = "-et", description = "The end time.", converter = LocalDateConverter.class)
-    private LocalDate endTime;
+    @Parameter(names = "-e", description = "The end date.", converter = LocalDateConverter.class)
+    private LocalDate endDate;
 
     @Override
     public String getName() {
@@ -36,7 +35,7 @@ public class TradesCommand extends StocksCommand implements SourceCommand {
     }
 
     @Override
-    public void run(PolygonClient client, Outputter outputter) {
-
+    public void run(PolygonClient client, Outputter<GenericRecord> outputter) throws Exception {
+        client.outputStockTrades(ticker, startDate, endDate, (Outputter) outputter);
     }
 }
