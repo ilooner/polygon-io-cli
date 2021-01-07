@@ -13,6 +13,7 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import org.apache.avro.specific.SpecificRecord;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
@@ -97,25 +98,25 @@ public class PolygonClient {
                                     final DateTime endDate,
                                     final Outputter<A> outputter,
                                     final DataSupplier<A, T> supplier) throws Exception {
-        Long lastTimestamp = null;
-        Long lastSeqNo = null;
-        DateTime computedStartDate = startDate;
+        final MutableObject<Long> lastTimestamp = new MutableObject<>();
+        final MutableObject<Long> lastSeqNo = new MutableObject<>();
+        final MutableObject<DateTime> computedStartDate = new MutableObject<>(startDate);
 
         while (true) {
-            final var tmpLT = lastTimestamp;
-            final var tmpSN = lastSeqNo;
+            final var tmpLT = lastTimestamp.getValue();
+            final var tmpSN = lastSeqNo.getValue();
             final List<T> jsonDataList;
 
             try {
-                jsonDataList = supplier.get(ticker, computedStartDate, endDate);
+                jsonDataList = supplier.get(ticker, computedStartDate.getValue(), endDate);
             } catch (Exception ex) {
                 if (RetryPredicate.noDataExists(ex)) {
                     // No date exists for this date, so we need to proceed to next date
-                    computedStartDate = DateUtils.nextWeekDay(computedStartDate);
-                    lastTimestamp = computedStartDate.getMillis();
-                    lastSeqNo = null;
+                    computedStartDate.setValue(DateUtils.nextWeekDay(computedStartDate.getValue()));
+                    lastTimestamp.setValue(computedStartDate.getValue().getMillis());;
+                    lastSeqNo.setValue(null);
 
-                    if (computedStartDate.toLocalDate().isAfter(endDate.toLocalDate())) {
+                    if (computedStartDate.getValue().toLocalDate().isAfter(endDate.toLocalDate())) {
                         // We are done, there is no more data for us to get
                         break;
                     } else {
@@ -140,9 +141,9 @@ public class PolygonClient {
             final var size = jsonDataList.size();
             final var last = jsonDataList.get(size - 1);
 
-            lastTimestamp = last.getTimestampMillis();
-            lastSeqNo = last.getSeqNo();
-            var nextStartDate = new DateTime(lastTimestamp);
+            lastTimestamp.setValue(last.getTimestampMillis());
+            lastSeqNo.setValue(last.getSeqNo());
+            var nextStartDate = new DateTime(lastTimestamp.getValue());
 
             if (size < LIMIT) {
                 if (nextStartDate.toLocalDate().equals(endDate.toLocalDate())) {
@@ -152,9 +153,9 @@ public class PolygonClient {
                 }
             }
 
-            if (!computedStartDate.toLocalDate().equals(nextStartDate.toLocalDate())) {
+            if (!computedStartDate.getValue().toLocalDate().equals(nextStartDate.toLocalDate())) {
                 // Sequence numbers reset for new days
-                lastSeqNo = null;
+                lastSeqNo.setValue(null);
             }
 
             if (nextStartDate.toLocalDate().isAfter(endDate.toLocalDate())) {
@@ -162,8 +163,8 @@ public class PolygonClient {
                 break;
             }
 
-            computedStartDate = nextStartDate;
-            lastTimestamp = computedStartDate.getMillis();
+            computedStartDate.setValue(nextStartDate);
+            lastTimestamp.setValue(computedStartDate.getValue().getMillis());
         }
 
         outputter.finish();

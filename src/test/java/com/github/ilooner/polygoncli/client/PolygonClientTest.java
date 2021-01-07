@@ -181,6 +181,19 @@ public class PolygonClientTest {
         Assert.assertEquals(expectedDates, actualDates);
     }
 
+    @Test
+    public void realWorldStockAggregatesQuery() throws Exception {
+        final LocalDate startDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-12-20");
+        final LocalDate endDate = PolygonClient.DATE_TIME_FORMATTER.parseLocalDate("2020-12-25");
+
+        final var config = new ConfigLoader().load(ConfigLoader.DEFAULT_CONFIG);
+        final var client = new PolygonClient(config);
+        final var outputter = new MemoryOutputter<Aggregate>();
+
+        client.outputStockAggregates("KO", startDate, endDate, outputter);
+        // polygon stocks aggregates -t KO -s 2020-12-20 -e 2020-12-25 csv -o ~/testKOAggregates.csv -h
+    }
+
     private Set<LocalDate> createWeekdayDateSetInclusive(final LocalDate startDate,
                                                          final LocalDate endDate) {
         final var dates = new HashSet<LocalDate>();
