@@ -112,19 +112,25 @@ public class PolygonClient {
             } catch (Exception ex) {
                 if (RetryPredicate.noDataExists(ex)) {
                     // No date exists for this date, so we need to proceed to next date
-                    computedStartDate.setValue(DateUtils.nextWeekDay(computedStartDate.getValue()));
-                    lastTimestamp.setValue(computedStartDate.getValue().getMillis());;
-                    lastSeqNo.setValue(null);
-
-                    if (computedStartDate.getValue().toLocalDate().isAfter(endDate.toLocalDate())) {
-                        // We are done, there is no more data for us to get
-                        break;
-                    } else {
+                    if (next(lastTimestamp, lastSeqNo, computedStartDate, endDate)) {
                         // We are not done yet. We need to try another data fetch.
                         continue;
+                    } else {
+                        // We are done, there is no more data for us to get
+                        break;
                     }
                 } else {
                     throw ex;
+                }
+            }
+
+            if (jsonDataList == null) {
+                if (next(lastTimestamp, lastSeqNo, computedStartDate, endDate)) {
+                    // We are not done yet. We need to try another data fetch.
+                    continue;
+                } else {
+                    // We are done, there is no more data for us to get
+                    break;
                 }
             }
 
@@ -168,6 +174,20 @@ public class PolygonClient {
         }
 
         outputter.finish();
+    }
+
+    /**
+     * @return True to continue. False to stop.
+     */
+    private boolean next(final MutableObject<Long> lastTimestamp,
+                         final MutableObject<Long> lastSeqNo,
+                         final MutableObject<DateTime> computedStartDate,
+                         final DateTime endDate) {
+        computedStartDate.setValue(DateUtils.nextWeekDay(computedStartDate.getValue()));
+        lastTimestamp.setValue(computedStartDate.getValue().getMillis());;
+        lastSeqNo.setValue(null);
+
+        return !computedStartDate.getValue().toLocalDate().isAfter(endDate.toLocalDate());
     }
 
     protected List<StockTradeJSON> getStockTrades(final String ticker,

@@ -190,8 +190,24 @@ public class PolygonClientTest {
         final var client = new PolygonClient(config);
         final var outputter = new MemoryOutputter<Aggregate>();
 
+        final var expectedDates = Sets.newHashSet(
+                "2020-12-21",
+                "2020-12-22",
+                "2020-12-23",
+                "2020-12-24")
+                .stream()
+                .map(dateString -> PolygonClient.DATE_TIME_FORMATTER.parseLocalDate(dateString))
+                .collect(Collectors.toSet());
+        final var actualDates = new HashSet<>();
+
         client.outputStockAggregates("KO", startDate, endDate, outputter);
-        // polygon stocks aggregates -t KO -s 2020-12-20 -e 2020-12-25 csv -o ~/testKOAggregates.csv -h
+
+        for (Aggregate aggregate: outputter.getOutputList()) {
+            final var localDates = new DateTime(aggregate.getTimestamp()).toLocalDate();
+            actualDates.add(localDates);
+        }
+
+        Assert.assertEquals(expectedDates, actualDates);
     }
 
     private Set<LocalDate> createWeekdayDateSetInclusive(final LocalDate startDate,
