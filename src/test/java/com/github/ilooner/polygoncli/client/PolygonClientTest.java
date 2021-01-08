@@ -8,12 +8,10 @@ import com.github.ilooner.polygoncli.output.MemoryOutputter;
 import com.github.ilooner.polygoncli.utils.DateUtils;
 import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
