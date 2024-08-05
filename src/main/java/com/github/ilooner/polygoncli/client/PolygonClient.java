@@ -191,13 +191,12 @@ public class PolygonClient {
     }
 
     protected List<StockTradeJSON> getStockTrades(final String ticker,
-                                                final DateTime startDate) throws Exception {
+                                                  final DateTime startDate) throws Exception {
         return execute(() -> polygonAPI.getStockTrades(
                 ticker,
                 startDate.toString(DATE_TIME_FORMATTER),
-                startDate.getMillis() * 1_000_000L,
-                null,
-                false,
+                "asc",
+                "timestamp",
                 LIMIT).get(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS))
                 .getResults();
     }

@@ -20,15 +20,14 @@ public interface PolygonAPI {
                                                                  @Path("timespan") String timespan,
                                                                  @Path("from") String from,
                                                                  @Path("to") String to,
-                                                                 @Query("unadjusted") Boolean unadjusted,
+                                                                 @Query("adjusted") Boolean adjusted,
                                                                  @Query("sort") String sort,
                                                                  @Query("limit") Integer limit);
 
-    @GET("/v2/ticks/stocks/trades/{ticker}/{date}")
+    @GET("/v3/trades/{ticker}")
     CompletableFuture<StockTradesListJSON> getStockTrades(@Path("ticker") String ticker,
-                                                          @Path("date") String date,
-                                                          @Query("timestamp") Long timestamp,
-                                                          @Query("timestampLimit") Long timestampLimit,
-                                                          @Query("reverse") Boolean reverse,
+                                                          @Query("timestamp") String timestamp,
+                                                          @Query("order") String order,
+                                                          @Query("sort") String sort,
                                                           @Query("limit") Integer limit);
 }
